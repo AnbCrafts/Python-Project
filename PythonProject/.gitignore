@@ -1,0 +1,19 @@
+# Virtual Environments
+venv/
+env/
+ENV/
+
+# Environment Variables (CRITICAL to ignore)
+.env
+.env.*
+
+# Python Cache & Compiled Files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# OS generated files
+.DS_Store
+Thumbs.db
