@@ -1,4 +1,5 @@
 import os
+import certifi
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from enum import Enum
@@ -22,7 +23,8 @@ async def lifespan(app: FastAPI):
     # Equivalent to mongoose.connect()
     global db_client, db
     mongo_uri = os.getenv("MONGODB_URI")
-    db_client = AsyncIOMotorClient(mongo_uri)
+    # Added tlsCAFile=certifi.where() to prevent SSL Handshake errors
+    db_client = AsyncIOMotorClient(mongo_uri, tlsCAFile=certifi.where())
     db = db_client.exposcan  # Name of your database
     yield
     # Equivalent to mongoose.disconnect()
@@ -60,8 +62,10 @@ async def create_lead(
         original_lead = await db.leads.find_one({"_id": existing_request["lead_id"]})
         
         if original_lead:
-            # Convert MongoDB ObjectId to string for JSON serialization
+            # Convert MongoDB ObjectId and datetime to string for JSON serialization
             original_lead["_id"] = str(original_lead["_id"])
+            if "created_at" in original_lead:
+                original_lead["created_at"] = original_lead["created_at"].isoformat()
             
             # Return 200 OK (instead of 201) to indicate it was already processed
             return JSONResponse(
